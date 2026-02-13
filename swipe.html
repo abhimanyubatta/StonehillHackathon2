@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Felicitux</title>
+  <link rel="stylesheet" href="main.css">
+</head>
+<body>
+  <div class="swipe-screen">
+    <header class="swipe-header">
+      <h2 class="swipe-title">Browse som picks for you</h2>
+      <p class="swipe-subtitle">Swipe right to save und left to skip.</p>
+    </header>
+
+    <main>
+      <div class="swipe-card-container"></div>
+      <div class="swipe-actions">
+        <button class="swipe-btn swipe-btn--nope">✕</button>
+        <button class="swipe-btn swipe-btn--like">♥</button>
+      </div>
+      <div class="swipe-progress">
+        <div class="swipe-progress-bar"></div>
+      </div>
+      <p class="swipe-empty" style="display:none;">You reached the end!!! Refresh to see them again</p>
+    </main>
+  </div>
+
+  <script>
+    var params = new URLSearchParams(window.location.search);
+    var prefs = {
+      gender: (params.get("gender") || "").toLowerCase(),
+      style: (params.get("style") || "").toLowerCase(),
+      size: (params.get("size") || "").toLowerCase() ,
+      occasion: (params.get("occasion") || "").toLowerCase(),
+      colors: params.getAll("colors").map(function (c) { return c.toLowerCase(); })
+    };
+
+    var minStyleId = 2000;
+    var maxStyleId = 10000;
+    var styleIds = [] ;
+    for (var sid = minStyleId; sid <= maxStyleId; sid++) {
+      styleIds.push(sid);
+    }
+
+    function mapBaseColourToBucket(colour) {
+      var c = (colour || "").toLowerCase();
+      if (!c) return "";
+      if (c.indexOf("black")!== -1) return "black";
+      if (c.indexOf("white") !== -1) return "white";
+      var neutrals = ["beige", "grey", "gray", "brown", "cream", "khaki", "navy"];
+      for (var i = 0; i < neutrals.length; i++) {
+        if (c.indexOf(neutrals[i]) !== -1) return "neutral";
+      }
+      return "colorful";
+    }
+
+    function mapJsonToProduct(id, json) {
+      if (!json || !json.data) return null;
+      var data = json.data;
+      var gender = (data.gender || "").toLowerCase();
+      var style = (data.usage || "").toLowerCase();
+      var colourBucket =mapBaseColourToBucket(data.baseColour);
+      var name = data.productDisplayName || data.variantName || ("Style " + id);
+      var price = data.discountedPrice || data.price || 0;
+      var occasion = "";
+      var displayCategories= (data.displayCategories || "").toLowerCase();
+      if (displayCategories.indexOf("party") !== -1) occasion = "party";
+      else if (displayCategories.indexOf("wedding") !== -1) occasion = "wedding";
+      else if (displayCategories.indexOf("birthday") !== -1) occasion = "birthday";
+      else occasion = "other";
+      var imageUrl = "";
+      if (data.styleImages && data.styleImages.default && data.styleImages.default.imageURL) {
+        imageUrl = data.styleImages.default.imageURL;
+      }
+      return {
+        id: id,
+        name: name,
+        price: price,
+        gender: gender,
+        style: style,
+        size: "",
+        occasion: occasion,
+        colorBucket: colourBucket,
+        tags: [data.brandName || "", data.usage || "", data.baseColour || ""].filter(function (v) { return v; }),
+        image: imageUrl
+      };
+    }
+
+    function matchPrefs(item, prefs) {
+      if (prefs.gender && item.gender && item.gender !== prefs.gender) return false;
+      if (prefs.style && item.style && item.style !== prefs.style) return false;
+      if (prefs.occasion && item.occasion && item.occasion !== prefs.occasion) return false;
+      if (prefs.size && item.size && item.size !== prefs.size) return false;
+      if (prefs.colors && prefs.colors.length > 0) {
+        if (!item.colorBucket) return false;
+        var hasColor = prefs.colors.indexOf(item.colorBucket) !== -1;
+        if (!hasColor) return false;
+      }
+      return true;
+    }
+
+    function loadProducts() {
+      var promises = styleIds.map(function (id) {
+        return fetch("styles/" + id + ".json").then(function (res) {
+          if (!res.ok) return null;
+          return res.json();
+        }).then(function (json) {
+          return mapJsonToProduct(id, json);
+        }).catch(function () {
+          return null;
+        });
+      });
+      return Promise.all(promises).then(function (items) {
+        return items.filter(function (p) { return p;});
+      });
+    }
+
+    function shuffle(array) {
+      for (var i = array.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+      }
+      return array;
+    }
+
+    var index= 0;
+    var queue= [];
+    var liked= [] ;
+    var maxSwipes = 20;
+    var container= document.querySelector(".swipe-card-container");
+    var btnLike = document.querySelector(".swipe-btn--like");
+    var btnNope = document.querySelector(".swipe-btn--nope");
+    var emptyEl= document.querySelector(".swipe-empty");
+    var progressBar = document.querySelector(".swipe-progress-bar");
+
+    function finishSwiping( ) {
+      try {
+        localStorage.setItem("felicituxLiked", JSON.stringify(liked || []));
+      } catch (e) {
+        // ignore storage errors on summary redirect
+      }
+      window.location.href = "summary.html";
+    }
+
+    function updateProgress() {
+      if (!progressBar) return;
+      var total = Math.min(queue.length, maxSwipes);
+      if (total === 0) {
+        progressBar.style.width = "0%";
+        return;
+      }
+      var current = Math.min(index, total);
+      var percent = (current / total) * 100;
+      progressBar.style.width = percent + "%";
+    }
+<!-- Supa Kool Schtuff aheadd.-->
+    function renderCard() {
+      if (index >= queue.length) {
+        finishSwiping();
+        return ;
+      }
+      emptyEl.style.display = "none";
+      btnLike.disabled = false;
+      btnNope.disabled = false;
+      var item = queue[index];
+      container.innerHTML =
+        '<article class="swipe-card">' +
+        '<img class="swipe-image" src="' + item.image + '" alt="' + item.name + '">' +
+        '<div class="swipe-meta">' +
+        '<div class="swipe-meta-main">' +
+        '<div class="swipe-name">' + item.name + "</div>" +
+        '<div class="swipe-price">₹' + item.price + "</div>" +
+        "</div>" +
+        '<div class="swipe-tags">' + item.tags.join(" · ") + "</div>" +
+        "</div>" +
+        "</article>";
+      updateProgress();
+    }
+
+    function swipe(direction) {
+      var card = container.querySelector(".swipe-card");
+      if (!card) return;
+      if (direction ==="like") {
+        liked.push(queue[index]) ;
+        card.classList.add("swipe-card--like");
+      } else {
+        card.classList.add("swipe-card--nope");
+      }
+      setTimeout(function () {
+        index += 1;
+        renderCard();
+      }, 220);
+    }
+
+    btnLike.addEventListener("click", function () {
+      swipe("like");
+    });
+
+    btnNope.addEventListener("click", function () {
+      swipe("nope");
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key=== "ArrowRight") swipe("like");
+      if (event.key==="ArrowLeft") swipe("nope");
+    });
+
+    loadProducts().then(function (products) {
+      if (!products || products.length === 0) {
+        queue = [];
+      } else {
+        var filtered = products.filter(function (p) {
+          return matchPrefs(p, prefs);
+        });
+        if (filtered.length === 0) {
+          filtered = products.slice();
+        }
+        queue = shuffle(filtered).slice(0, maxSwipes);
+      }
+      index = 0;
+      renderCard();
+    });
+  </script>
+</body>
+</html>
+

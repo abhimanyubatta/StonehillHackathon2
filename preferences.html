@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" >
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" >
+  <title> Felicitux </title>
+  <link rel="stylesheet" href="main.css" >
+</head>
+<body >
+  <div   class="screen">
+    <h2 class="prefs-title" >Set your preferences</h2>
+    <p class="prefs-subtitle">We’ll use these to show you clothes youll love.</p>
+
+    <form class="prefs-form" action="swipe.html" method="get"  >
+      <section class="prefs-section">
+        <h3 class="prefs-heading">Gender</h3>
+        <div class="prefs-options" >
+          <label class="prefs-option">
+            <input type="radio" name="gender" value="men" class="prefs-input" >
+            <span class="prefs-chip">Men</span>
+          </label>
+          <label class="prefs-option">
+            <input type="radio" name="gender" value="women" class="prefs-input"  >
+            <span class="prefs-chip">Women</span>
+          </label>
+          <label class="prefs-option">
+            <input type="radio"  name="gender" value="unisex" class="prefs-input">
+            <span class="prefs-chip">Unisex</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="prefs-section">
+        <h3 class="prefs-heading" >Style</h3>
+        <div class="prefs-options">
+          <label class="prefs-option">
+            <input type="radio" name="style" value="casual" class="prefs-input">
+            <span class="prefs-chip">Casual</span>
+          </label>
+          <label class="prefs-option">
+            <input type="radio" name="style" value="formal" class="prefs-input">
+            <span class="prefs-chip">Formal</span>
+          </label>
+          <label class="prefs-option">
+            <input type="radio" name="style" value="sporty" class="prefs-input">
+            <span class="prefs-chip">Sporty</span>
+          </label>
+          <label class="prefs-option">
+            <input type="radio" name="style" value="streetwear" class="prefs-input">
+            <span class="prefs-chip">Streetwear</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="prefs-section">
+        <h3 class="prefs-heading">What do you want to see?</h3>
+        <div class="prefs-options">
+          <label class="prefs-option">
+            <input type="radio" name="category" value="shirt" class="prefs-input">
+            <span class="prefs-chip">Shirts</span>
+          </label>
+          <label class="prefs-option">
+            <input type="radio" name="category" value="pants" class="prefs-input">
+            <span class="prefs-chip">Pants</span>
+          </label>
+          <label class="prefs-option">
+            <input type="radio" name="category" value="shoes" class="prefs-input">
+            <span class="prefs-chip">Shoes</span>
+          </label>
+          <label class="prefs-option">
+            <input type="radio" name="category" value="accessories" class="prefs-input">
+            <span class="prefs-chip">Accessories</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="prefs-section">
+        <h3 class="prefs-heading">Colors you like</h3>
+        <div class="prefs-options">
+          <label class="prefs-option">
+            <input type="checkbox" name="colors" value="black" class="prefs-input">
+            <span class="prefs-chip">Black</span>
+          </label>
+          <label class="prefs-option">
+            <input type="checkbox" name="colors" value="white" class="prefs-input">
+            <span class="prefs-chip">White</span>
+          </label>
+          <label class="prefs-option">
+            <input type="checkbox" name="colors" value="neutral" class="prefs-input">
+            <span class="prefs-chip">Neutral</span>
+          </label>
+          <label class="prefs-option">
+            <input type="checkbox" name="colors" value="colorful" class="prefs-input">
+            <span class="prefs-chip">Colorful</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="prefs-section">
+        <h3 class="prefs-heading">Size</h3>
+        <div class="prefs-options">
+          <label class="prefs-option">
+            <input type="radio" name="size" value="s" class="prefs-input">
+            <span class="prefs-chip">S</span>
+          </label>
+          <label class="prefs-option">
+            <input type="radio" name="size" value="m" class="prefs-input">
+            <span class="prefs-chip">M</span>
+          </label>
+          <label class="prefs-option">
+            <input type="radio" name="size" value="l" class="prefs-input">
+            <span class="prefs-chip">L</span>
+          </label>
+          <label class="prefs-option">
+            <input type="radio" name="size" value="xl" class="prefs-input">
+            <span class="prefs-chip">XL</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="prefs-section">
+        <h3 class="prefs-heading">Occasion</h3>
+        <div class="prefs-options">
+          <label class="prefs-option">
+            <input type="radio" name="occasion" value="birthday" class="prefs-input">
+            <span class="prefs-chip">Birthday</span>
+          </label>
+          <label class="prefs-option">
+            <input type="radio" name="occasion" value="party" class="prefs-input">
+            <span class="prefs-chip">Party</span>
+          </label>
+          <label class="prefs-option">
+            <input type="radio" name="occasion" value="wedding" class="prefs-input">
+            <span class="prefs-chip">Wedding</span>
+          </label>
+          <label class="prefs-option">
+            <input type="radio" name="occasion" value="other" class="prefs-input">
+            <span class="prefs-chip">Other</span>
+          </label>
+        </div>
+      </section>
+
+      <button type="submit" class="cssbuttons-io-button prefs-submit">
+        Continue
+        <div class="icon">
+          <svg
+            height="24"
+            width="24"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path d="M0 0h24v24H0z" fill="none"></path>
+            <path
+              d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z"
+              fill="currentColor"
+            ></path>
+          </svg>
+        </div>
+      </button>
+    </form>
+  </div>
+</body>
+</html>
