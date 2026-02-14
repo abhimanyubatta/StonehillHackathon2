@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Felicitux</title>
+  <link rel="stylesheet" href="main.css">
+</head>
+<body>
+  <div class="screen--summary">
+    <header class="summary-header">
+      <h2 class="summary-title">Your saved picks</h2>
+      <p class="summary-subtitle">Here are the looks you liked.</p>
+    </header>
+
+    <main class="summary-main">
+      <div class="summary-empty hidden">You did not save any items. <a href="preferences.html" class="summary-link">Try again</a>.</div>
+      <div class="summary-grid"></div>
+
+      <section class="more-like-this-section hidden" id="more-like-this-section" aria-labelledby="more-like-this-heading">
+        <h2 class="more-like-this-heading" id="more-like-this-heading">More like this</h2>
+        <div class="more-like-this">
+          <div class="more-like-this-track" id="more-like-this-track"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="summary-footer">
+      <a href="preferences.html" class="cssbuttons-io-button summary-cta">
+        Start over
+        <div class="icon">
+          <svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 0h24v24H0z" fill="none"></path>
+            <path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path>
+          </svg>
+        </div>
+      </a>
+    </footer>
+  </div>
+
+  <script>
+    function escapeHtml(str) {
+      if (!str) return "";
+      var div = document.createElement("div");
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function buyUrl(landingPageUrl) {
+      var raw = landingPageUrl || "";
+      if (raw.indexOf("https://") === 0 || raw.indexOf("http://") === 0) return raw;
+      if (raw) return "https://www.myntra.com/" + raw.replace(/^\/+/, "");
+      return "";
+    }
+
+    function createCard(item, withBuy) {
+      var card = document.createElement("article");
+      card.className = "summary-card";
+      var nameEsc = escapeHtml(item.name);
+      var priceEsc = escapeHtml(String(item.price));
+      var tagsEsc = (item.tags || []).map(escapeHtml).join(" · ");
+      var imgSrc = item.image && item.image.indexOf("javascript:") !== 0 ? item.image : "";
+      var buyHtml = "";
+      if (withBuy) {
+        var url = buyUrl(item.landingPageUrl);
+        if (url) buyHtml = '<div class="summary-buy"><a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" class="summary-link">Buy on Myntra</a></div>';
+      }
+      card.innerHTML =
+        '<div class="summary-image-wrap">' +
+        '<img class="summary-image" src="' + imgSrc + '" alt="' + nameEsc + '">' +
+        "</div>" +
+        '<div class="summary-meta">' +
+        '<div class="summary-meta-main">' +
+        '<div class="summary-name">' + nameEsc + "</div>" +
+        '<div class="summary-price">₹' + priceEsc + "</div>" +
+        "</div>" +
+        '<div class="summary-tags">' + tagsEsc + "</div>" +
+        buyHtml +
+        "</div>";
+      return card;
+    }
+
+    function loadSummary() {
+      var grid = document.querySelector(".summary-grid");
+      var empty = document.querySelector(".summary-empty");
+      var data;
+      try {
+        data = JSON.parse(localStorage.getItem("felicituxLiked") || "[]");
+      } catch (e) {
+        data = [];
+      }
+      if (!data || !data.length) {
+        empty.classList.remove("hidden");
+        return;
+      }
+      data.forEach(function (item) {
+        grid.appendChild(createCard(item, true));
+      });
+    }
+
+    function mapBaseColourToBucket(c) {
+      c = (c || "").toLowerCase();
+      if (!c || c === "na" || c === "n/a") return "";
+      if (c.indexOf("black") !== -1) return "black";
+      if (c.indexOf("white") !== -1) return "white";
+      var neutrals = ["beige", "grey", "gray", "brown", "cream", "khaki", "navy"];
+      for (var i = 0; i < neutrals.length; i++) if (c.indexOf(neutrals[i]) !== -1) return "neutral";
+      return "colorful";
+    }
+
+    function getColourBuckets(data) {
+      var buckets = [];
+      if (!data) return buckets;
+      var raw = [data.baseColour, data.colour1, data.colour2];
+      for (var i = 0; i < raw.length; i++) {
+        var b = mapBaseColourToBucket(raw[i]);
+        if (b && buckets.indexOf(b) === -1) buckets.push(b);
+      }
+      return buckets;
+    }
+
+    function mapJsonToProduct(id, json) {
+      if (!json || !json.data) return null;
+      var data = json.data;
+      var genderRaw = (data.gender || "").toLowerCase();
+      var ageGroup = (data.ageGroup || "").toLowerCase();
+      var gender = genderRaw || (ageGroup.indexOf("women") !== -1 || ageGroup.indexOf("girl") !== -1 ? "women" : ageGroup.indexOf("men") !== -1 || ageGroup.indexOf("boy") !== -1 ? "men" : ageGroup.indexOf("unisex") !== -1 ? "unisex" : "");
+      var style = (data.usage || "").toLowerCase();
+      var colourBuckets = getColourBuckets(data);
+      var name = data.productDisplayName || data.variantName || ("Style " + id);
+      var price = data.discountedPrice || data.price || 0;
+      var category = "";
+      var articleTypeName = (data.articleType && data.articleType.typeName) ? (data.articleType.typeName || "").toLowerCase() : "";
+      if (articleTypeName.indexOf("shirt") !== -1 || articleTypeName.indexOf("top") !== -1 || articleTypeName.indexOf("tee") !== -1) category = "shirt";
+      else if (articleTypeName.indexOf("pant") !== -1 || articleTypeName.indexOf("trouser") !== -1 || articleTypeName.indexOf("jean") !== -1 || articleTypeName.indexOf("short") !== -1) category = "pants";
+      else if (articleTypeName.indexOf("shoe") !== -1 || articleTypeName.indexOf("sneaker") !== -1 || articleTypeName.indexOf("boot") !== -1 || articleTypeName.indexOf("sandal") !== -1) category = "shoes";
+      else if (articleTypeName.indexOf("accessor") !== -1 || articleTypeName.indexOf("cap") !== -1 || articleTypeName.indexOf("bag") !== -1 || articleTypeName.indexOf("watch") !== -1 || articleTypeName.indexOf("belt") !== -1) category = "accessories";
+      if (!category && data.subCategory && data.subCategory.typeName) {
+        var sn = (data.subCategory.typeName || "").toLowerCase();
+        if (sn.indexOf("shirt") !== -1 || sn.indexOf("top") !== -1) category = "shirt";
+        else if (sn.indexOf("pant") !== -1 || sn.indexOf("footwear") !== -1) category = sn.indexOf("footwear") !== -1 ? "shoes" : "pants";
+        else if (sn.indexOf("accessor") !== -1) category = "accessories";
+      }
+      if (!category && name) {
+        var nl = name.toLowerCase();
+        if (nl.indexOf("shirt") !== -1 || nl.indexOf("top") !== -1) category = "shirt";
+        else if (nl.indexOf("pant") !== -1 || nl.indexOf("jean") !== -1) category = "pants";
+        else if (nl.indexOf("shoe") !== -1 || nl.indexOf("sneaker") !== -1) category = "shoes";
+        else if (nl.indexOf("cap") !== -1 || nl.indexOf("bag") !== -1) category = "accessories";
+      }
+      var imageUrl = (data.styleImages && data.styleImages.default && data.styleImages.default.imageURL) ? data.styleImages.default.imageURL : "";
+      return {
+        id: id,
+        name: name,
+        price: price,
+        gender: gender,
+        style: style,
+        category: category,
+        colorBuckets: colourBuckets,
+        tags: [data.brandName || "", data.usage || "", data.baseColour || ""].filter(function (v) { return v && String(v).toLowerCase() !== "na"; }),
+        image: imageUrl,
+        landingPageUrl: data.landingPageUrl || ""
+      };
+    }
+
+    function isSimilar(item, likedIds, attrs) {
+      if (!item || !item.image) return false;
+      if (likedIds.indexOf(item.id) !== -1) return false;
+      if (attrs.gender && item.gender && item.gender !== attrs.gender && item.gender !== "unisex") return false;
+      var categoryMatch = attrs.category && item.category && item.category === attrs.category;
+      var styleMatch = attrs.style && item.style && item.style === attrs.style;
+      var colorMatch = false;
+      if (attrs.colors && attrs.colors.length && item.colorBuckets && item.colorBuckets.length) {
+        for (var i = 0; i < attrs.colors.length; i++) {
+          if (item.colorBuckets.indexOf(attrs.colors[i]) !== -1) { colorMatch = true; break; }
+        }
+      }
+      return categoryMatch || styleMatch || colorMatch || (!attrs.category && !attrs.style && (!attrs.colors || !attrs.colors.length));
+    }
+
+    function loadMoreLikeThis() {
+      var section = document.getElementById("more-like-this-section");
+      var track = document.getElementById("more-like-this-track");
+      if (!section || !track) return;
+      var data;
+      try {
+        data = JSON.parse(localStorage.getItem("felicituxLiked") || "[]");
+      } catch (e) {
+        data = [];
+      }
+      if (!data || !data.length) {
+        section.classList.add("hidden");
+        return;
+      }
+      var likedIds = data.map(function (item) { return item.id; });
+      var attrs = { gender: null, category: null, style: null, colors: [] };
+      for (var i = 0; i < Math.min(5, data.length); i++) {
+        if (data[i].gender) attrs.gender = data[i].gender;
+        if (data[i].category) attrs.category = data[i].category;
+        if (data[i].style) attrs.style = data[i].style;
+        if (data[i].colorBuckets) data[i].colorBuckets.forEach(function (b) { if (attrs.colors.indexOf(b) === -1) attrs.colors.push(b); });
+      }
+      var minId = 1163;
+      var maxId = 10000;
+      var sampleSize = 80;
+      var ids = [];
+      for (var s = 0; s < sampleSize; s++) {
+        ids.push(minId + Math.floor(Math.random() * (maxId - minId + 1)));
+      }
+      Promise.all(ids.map(function (id) {
+        return fetch("styles/" + id + ".json").then(function (res) { return res.ok ? res.json() : null; }).then(function (json) { return json ? mapJsonToProduct(id, json) : null; }).catch(function () { return null; });
+      })).then(function (products) {
+        var valid = (products || []).filter(function (p) { return p; });
+        var similar = valid.filter(function (p) { return isSimilar(p, likedIds, attrs); });
+        var slice = similar.slice(0, 12);
+        if (slice.length === 0) return;
+        section.classList.remove("hidden");
+        var duplicated = slice.concat(slice);
+        track.innerHTML = "";
+        duplicated.forEach(function (item) {
+          var card = createCard(item, true);
+          card.className = "summary-card more-like-this-card";
+          track.appendChild(card);
+        });
+      }).catch(function () {
+        section.classList.add("hidden");
+      });
+    }
+
+    loadSummary();
+    loadMoreLikeThis();
+  </script>
+</body>
+</html>

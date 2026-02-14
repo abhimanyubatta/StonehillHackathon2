@@ -118,6 +118,7 @@
         </div>
       </section>
 
+
       <section class="prefs-section">
         <h3 class="prefs-heading">Occasion</h3>
         <div class="prefs-options">
@@ -137,6 +138,23 @@
             <input type="radio" name="occasion" value="other" class="prefs-input">
             <span class="prefs-chip">Other</span>
           </label>
+        </div>
+      </section>
+
+      <section class="prefs-section">
+        <h3 class="prefs-heading">Price Range (₹)</h3>
+        <div class="prefs-price-range">
+          <div class="prefs-price-input-group">
+            <label class="prefs-price-label">
+              <span>Min</span>
+              <input type="number" name="priceMin" value="" min="0" step="1" class="prefs-price-input" placeholder="0">
+            </label>
+            <span class="prefs-price-separator">-</span>
+            <label class="prefs-price-label">
+              <span>Max</span>
+              <input type="number" name="priceMax" value="" min="0" step="1" class="prefs-price-input" placeholder="10000">
+            </label>
+          </div>
         </div>
       </section>
 
